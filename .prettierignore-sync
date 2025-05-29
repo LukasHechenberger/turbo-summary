@@ -1,0 +1,6 @@
+[relative]
+.gitignore
+
+[inline]
+pnpm-lock.yaml
+**/*.hbs
