@@ -17,7 +17,7 @@ import {
   ChartTooltipContent,
 } from '@repo/ui/components/chart';
 import prettyMilliseconds from 'pretty-ms';
-import summary from './summary.json';
+import summary from './failing.json';
 import {
   Card,
   CardContent,
@@ -162,13 +162,32 @@ function TasksChart() {
 export default function SamplePage() {
   const facts = [
     {
+      title: 'Failed Tasks',
+      value: `${summary.execution.failed}`,
+    },
+    {
+      title: 'Handled Tasks',
+      value: `${summary.tasks.length}/${summary.execution.attempted}`,
+    },
+    {
       title: 'Cached Tasks',
       value: `${summary.tasks.filter((task) => task.cache.status === 'HIT').length}/${summary.tasks.length}`,
     },
     {
-      title: 'Time Saved',
+      title: 'Time Saved (Caching)',
       value: prettyMilliseconds(
         summary.tasks.reduce((saved, task) => saved + task.cache.timeSaved, 0),
+      ),
+    },
+    {
+      title: 'Time Saved (Parallelization)',
+      value: prettyMilliseconds(
+        summary.tasks.reduce(
+          (total, task) => total + task.execution.endTime - task.execution.startTime,
+          0,
+        ) -
+          summary.execution.endTime +
+          summary.execution.startTime,
       ),
     },
   ];
@@ -177,7 +196,7 @@ export default function SamplePage() {
       <div className="container mx-auto p-4">
         <Card>
           <CardHeader>
-            <div className="flex gap-4">
+            <div className="flex gap-6">
               <div className="flex-1">
                 <CardTitle>Run Summary</CardTitle>
                 <CardDescription>This chart shows the execution time of tasks.</CardDescription>
