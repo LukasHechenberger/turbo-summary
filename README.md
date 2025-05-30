@@ -3,7 +3,7 @@
 Visualize a [Turborepo](https://turborepo.com) summary file created with [`turbo run [...task] --summarize`](https://turborepo.com/docs/crafting-your-repository/caching#using-run-summaries)
 
 > [!NOTE]
-> This project is in a pretty early stage. It works fine so far, but many features I want to implement are still missing. [Create an Issue](https://github.com/LukasHechenberger/turbo-summary/issues/new) if you have any thoughts 😉.
+> This project is in a pretty early stage. It works fine so far, but many [features I want to implement](#planned-features) are still missing. [Create an Issue](https://github.com/LukasHechenberger/turbo-summary/issues/new) if you have any thoughts 😉.
 
 ## Usage
 
