@@ -1,8 +1,10 @@
-import type { PlopTypes } from '@turbo/gen';
+/* eslint-env node */
 
 // Learn more about Turborepo Generators at https://turborepo.com/docs/guides/generating-code
 
-export default function generator(plop: PlopTypes.NodePlopAPI): void {
+module.exports = function generator(
+  /** @type {import('@turbo/gen').PlopTypes.NodePlopAPI} */ plop,
+) {
   // A simple generator to add a new React component to the internal UI library
   plop.setGenerator('react-component', {
     description: 'Adds a new react component',
@@ -16,15 +18,9 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
     actions: [
       {
         type: 'add',
-        path: 'src/{{kebabCase name}}.tsx',
+        path: 'src/components/{{kebabCase name}}.tsx',
         templateFile: 'templates/component.hbs',
-      },
-      {
-        type: 'append',
-        path: 'package.json',
-        pattern: /"exports": {(?<insertion>)/g,
-        template: '    "./{{kebabCase name}}": "./src/{{kebabCase name}}.tsx",',
       },
     ],
   });
-}
+};
