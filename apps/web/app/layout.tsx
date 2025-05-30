@@ -15,6 +15,11 @@ const fontMono = Geist_Mono({
   variable: '--font-mono',
 });
 
+export const metadata = {
+  title: 'Turborepo Summary',
+  description: 'View and analyze your Turborepo summary files with ease.',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -51,15 +56,14 @@ export default function RootLayout({
 
           <footer className="bg-muted/20 text-muted-foreground border-t px-4 pb-12 pt-8 text-center text-sm">
             &copy; {new Date().getFullYear()}{' '}
-            <Button variant="ghost" asChild>
-              <Link
-                rel="noopener noreferrer"
-                target="_blank"
-                href="https://github.com/LukasHechenberger"
-              >
-                Lukas Hechenberger
-              </Link>
-            </Button>
+            <Link
+              rel="noopener noreferrer"
+              target="_blank"
+              className="hover:text-primary"
+              href="https://github.com/LukasHechenberger"
+            >
+              Lukas Hechenberger
+            </Link>
           </footer>
         </Providers>
       </body>
