@@ -37,8 +37,18 @@ export type TurboSummary = typeof sample;
 
 const chartConfig = {} satisfies ChartConfig;
 
+type RechartsCustomizedProps<T> = {
+  formattedGraphicalItems: {
+    props: { points: { x: number; y: number; payload: T }[] };
+  }[];
+};
+
 // using Customized gives you access to all relevant chart props
-const CustomizedRectangle = (props) => {
+const CustomizedRectangle = (
+  props: RechartsCustomizedProps<TurboSummary['tasks'][number]> & {
+    colorByTask: Record<string, string>;
+  },
+) => {
   const { formattedGraphicalItems, colorByTask } = props;
   // get first and second series in chart
   const firstSeries = formattedGraphicalItems[0];
@@ -46,7 +56,7 @@ const CustomizedRectangle = (props) => {
 
   // render custom content using points from the graph
   return firstSeries?.props?.points.map((firstSeriesPoint, index) => {
-    const secondSeriesPoint = secondSeries?.props?.points[index];
+    const secondSeriesPoint = secondSeries!.props!.points[index]!;
     const xDifference = firstSeriesPoint.x - secondSeriesPoint.x;
 
     return (
@@ -66,7 +76,7 @@ const CustomizedRectangle = (props) => {
   });
 };
 
-function TasksChart({ summary }: { summary: Summary }) {
+function TasksChart({ summary }: { summary: TurboSummary }) {
   const chartData = summary.tasks.map((task) => ({
     ...task,
     delay: task.execution.startTime - summary.execution.startTime,
@@ -100,7 +110,14 @@ function TasksChart({ summary }: { summary: Summary }) {
         />
         <CartesianGrid horizontal={false} />
 
-        <Customized component={(p) => <CustomizedRectangle {...p} colorByTask={colorByTask} />} />
+        <Customized
+          component={(p) => (
+            <CustomizedRectangle
+              {...(p as RechartsCustomizedProps<TurboSummary['tasks'][number]>)}
+              colorByTask={colorByTask}
+            />
+          )}
+        />
 
         <Line
           dataKey="start"
@@ -167,7 +184,7 @@ function TasksChart({ summary }: { summary: Summary }) {
   );
 }
 
-export function Summary({ summary }: { summary: Summary }) {
+export function Summary({ summary }: { summary: TurboSummary }) {
   const facts = [
     {
       title: 'Failed Tasks',
