@@ -1,6 +1,14 @@
 'use client';
 
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@repo/ui/components/select';
+import { Label } from '@repo/ui/components/label';
+import {
   CartesianGrid,
   Customized,
   LabelList,
@@ -27,6 +35,7 @@ import {
 import almostWorking from './almost-working.json';
 import failing from './failing.json';
 import cached from './cached.json';
+import { useState } from 'react';
 
 // MARK: Settings
 
@@ -176,7 +185,11 @@ function TasksChart({ summary }: { summary: Summary }) {
 }
 
 export default function SamplePage() {
-  const summary = samples[0].data;
+  const [sampleIndex, setSampleIndex] = useState(0);
+
+  const sample = samples[sampleIndex]!;
+  const summary = sample.data;
+
   const facts = [
     {
       title: 'Failed Tasks',
@@ -212,6 +225,29 @@ export default function SamplePage() {
   return (
     <div>
       <div className="container mx-auto p-4">
+        <div className="flex items-baseline justify-end gap-2 p-4">
+          <Label htmlFor="select-sample" className="mb-2">
+            Select Sample
+          </Label>
+
+          <Select
+            value={`${sampleIndex}`}
+            onValueChange={(value) => setSampleIndex(parseInt(value, 10))}
+          >
+            <SelectTrigger id="select-sample" className="w-[180px]">
+              <SelectValue placeholder="Sample" />
+            </SelectTrigger>
+
+            <SelectContent className="bg-background">
+              {samples.map((sample, index) => (
+                <SelectItem key={sample.title} value={`${index}`}>
+                  {sample.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <Card>
           <CardHeader>
             <div className="flex gap-6">
