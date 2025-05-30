@@ -1,4 +1,4 @@
-/* eslint-env node */
+/* global module -- CommonJS */
 
 // Learn more about Turborepo Generators at https://turborepo.com/docs/guides/generating-code
 

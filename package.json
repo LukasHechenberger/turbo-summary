@@ -6,7 +6,8 @@
     "build": "turbo run build",
     "check-types": "turbo run check-types",
     "dev": "turbo run dev",
-    "format": "prettier --check .",
+    "format": "turbo run format",
+    "format:root": "prettier --check .",
     "postinstall": "ignore-sync .",
     "lint": "turbo run lint"
   },
