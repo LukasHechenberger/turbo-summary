@@ -18,22 +18,45 @@ const tasksPerPackage = summary.tasks.reduce(
   {} as Record<string, (typeof summary)['tasks'][number][]>,
 );
 
-// const chartData = Object.entries(tasksPerPackage).map(([packageName, tasks]) => ({
-//   package: packageName,
-//   // desktop: 40 * Math.random(),
-//   // mobile: 20 * Math.random(),
-//   tasks: tasks.map((task) => ({
-//     ...task,
-//     delay: task.execution.startTime - summary.execution.startTime,
-//     duration: task.execution.endTime - task.execution.startTime,
-//   })),
-// }));
+const taskNames = summary.tasks.reduce((names, task) => names.add(task.task), new Set<string>());
 
-const chartData = summary.tasks.map((task) => ({
-  ...task,
-  delay: task.execution.startTime - summary.execution.startTime,
-  duration: task.execution.endTime - task.execution.startTime,
+const chartData = Object.entries(tasksPerPackage).map(([packageName, tasks]) => ({
+  package: packageName,
+  // desktop: 40 * Math.random(),
+  // mobile: 20 * Math.random(),
+  // tasks: tasks.map((task) => ({
+  //   ...task,
+  //   delay: task.execution.startTime - summary.execution.startTime,
+  //   duration: task.execution.endTime - task.execution.startTime,
+  // })),
+
+  ...Object.fromEntries(
+    [...taskNames.values()].map((taskName) => {
+      const task = tasks.find((t) => t.task === taskName);
+
+      if (task) {
+        return [
+          task.task,
+          {
+            ...task,
+            delay: task.execution.startTime - summary.execution.startTime,
+            duration: task.execution.endTime - task.execution.startTime,
+          },
+        ];
+      }
+
+      return [];
+    }),
+  ),
 }));
+
+console.dir({ chartData, names: [...taskNames.values()] });
+
+// const chartData = summary.tasks.map((task) => ({
+//   ...task,
+//   delay: task.execution.startTime - summary.execution.startTime,
+//   duration: task.execution.endTime - task.execution.startTime,
+// }));
 
 const chartConfig = {
   delay: {
@@ -64,7 +87,7 @@ function MyChart() {
           tickFormatter={(value) => prettyMilliseconds(value)}
         />
         <YAxis
-          dataKey="taskId"
+          dataKey="package"
           type="category"
           tickLine={false}
           tickMargin={10}
@@ -75,7 +98,7 @@ function MyChart() {
           cursor={false}
           content={
             <ChartTooltipContent
-              labelFormatter={(value) => `Task: ${value}`}
+              labelFormatter={(value) => `Package: ${value}`}
               formatter={(value, name, item, index) => (
                 <>
                   <div className="text-muted-foreground flex basis-full items-center text-xs">
@@ -86,7 +109,7 @@ function MyChart() {
                   </div>
 
                   {/* Add this after the last item */}
-                  {index === 1 && (
+                  {/* {index === 1 && (
                     <>
                       <div className="text-muted-foreground flex basis-full items-center text-xs">
                         Cache
@@ -101,14 +124,44 @@ function MyChart() {
                         </div>
                       </div>
                     </>
-                  )}
+                  )} */}
                 </>
               )}
             />
           }
         />
 
-        <Bar stackId="a" dataKey="delay" fill="grey" radius={4} style={{ opacity: 0.1 }} />
+        {[...taskNames.values()].map((taskName) => (
+          <>
+            <Bar
+              stackId={taskName}
+              dataKey={`${taskName}.delay`}
+              fill="grey"
+              radius={4}
+              style={{ opacity: 0.1 }}
+            />
+            <Bar
+              stackId={taskName}
+              dataKey={`${taskName}.duration`}
+              fill="var(--chart-1)"
+              radius={4}
+            >
+              {chartData.map((perPackage) =>
+                perPackage[taskName] ? (
+                  <Cell
+                    key={perPackage[taskName].taskId}
+                    fill={perPackage[taskName].execution.exitCode === 0 ? 'green' : 'red'}
+                    opacity={perPackage[taskName].cache.status === 'HIT' ? 0.5 : 1}
+                  />
+                ) : (
+                  <Cell key={`${perPackage.package}.${taskName}`} />
+                ),
+              )}
+            </Bar>
+          </>
+        ))}
+
+        {/* <Bar stackId="a" dataKey="delay" fill="grey" radius={4} style={{ opacity: 0.1 }} />
         <Bar stackId="a" dataKey="duration" fill="var(--chart-1)" radius={4}>
           {chartData.map((task) => (
             <Cell
@@ -117,7 +170,7 @@ function MyChart() {
               opacity={task.cache.status === 'HIT' ? 0.5 : 1}
             />
           ))}
-        </Bar>
+        </Bar> */}
       </BarChart>
     </ChartContainer>
   );
@@ -126,7 +179,7 @@ function MyChart() {
 export default function SamplePage() {
   return (
     <div>
-      <h1>Sample Page</h1>
+      <h1>Sample Report</h1>
 
       <div className="container mx-auto p-4">
         <MyChart />
