@@ -220,15 +220,18 @@ export function Summary({ summary }: { summary: TurboSummary }) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex gap-6">
-          <div className="flex-1">
+        <div className="gap-6 lg:flex">
+          <div className="mb-4 flex-1 lg:mb-0">
             <CardTitle>Run #{summary.id}</CardTitle>
             <CardDescription>This chart shows the execution time of tasks.</CardDescription>
           </div>
 
           {/* Facts */}
           {facts.map((fact) => (
-            <div key={fact.title} className="flex flex-col items-end justify-center gap-1">
+            <div
+              key={fact.title}
+              className="flex flex-col items-center justify-center gap-1 lg:items-end"
+            >
               <span className="text-muted-foreground text-xs">{fact.title}</span>
               <span className="text-lg font-bold leading-none sm:text-3xl">{fact.value}</span>
             </div>
