@@ -1,5 +1,4 @@
 import { Button } from '@repo/ui/components/button';
-import { Separator } from '@repo/ui/components/separator';
 import Link from 'next/link';
 import { UploadForm } from './page.client';
 
