@@ -12,13 +12,13 @@ import almostWorking from './almost-working.json';
 import failing from './failing.json';
 import cached from './cached.json';
 import { useState } from 'react';
-import { Summary } from '@/components/summary';
+import { Summary, TurboSummary } from '@/components/summary';
 
 const samples = [
-  { title: 'Failing', data: failing },
-  { title: 'Almost Working', data: almostWorking },
-  { title: 'Cached', data: cached },
-];
+  { title: 'Failing', data: failing as TurboSummary },
+  { title: 'Almost Working', data: almostWorking as TurboSummary },
+  { title: 'Cached', data: cached as TurboSummary },
+] satisfies { title: string; data: TurboSummary }[];
 
 export default function SamplePage() {
   const [sampleIndex, setSampleIndex] = useState(0);
