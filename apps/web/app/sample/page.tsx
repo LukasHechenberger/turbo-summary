@@ -17,7 +17,6 @@ import {
   ChartTooltipContent,
 } from '@repo/ui/components/chart';
 import prettyMilliseconds from 'pretty-ms';
-import summary from './failing.json';
 import {
   Card,
   CardContent,
@@ -25,6 +24,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@repo/ui/components/card';
+import almostWorking from './almost-working.json';
+import failing from './failing.json';
+import cached from './cached.json';
 
 // MARK: Settings
 
@@ -33,27 +35,19 @@ const colors = 5;
 /** Height of the task's rectangle */
 const barHeight = 20;
 
-const chartData = summary.tasks.map((task) => ({
-  ...task,
-  delay: task.execution.startTime - summary.execution.startTime,
-  duration: task.execution.endTime - task.execution.startTime,
+const samples = [
+  { title: 'Failing', data: failing },
+  { title: 'Almost Working', data: almostWorking },
+  { title: 'Cached', data: cached },
+];
 
-  start: task.execution.startTime - summary.execution.startTime,
-  end: task.execution.endTime - summary.execution.startTime,
-}));
-
-const taskNames = summary.tasks.reduce((acc, task) => acc.add(task.task), new Set<string>());
-const colorByTask = Object.fromEntries(
-  [...taskNames.values()].map((task, index) => {
-    return [task, `var(--chart-${(index % colors) + 1})`];
-  }),
-);
+type Summary = (typeof samples)[number]['data'];
 
 const chartConfig = {} satisfies ChartConfig;
 
 // using Customized gives you access to all relevant chart props
 const CustomizedRectangle = (props) => {
-  const { formattedGraphicalItems } = props;
+  const { formattedGraphicalItems, colorByTask } = props;
   // get first and second series in chart
   const firstSeries = formattedGraphicalItems[0];
   const secondSeries = formattedGraphicalItems[1];
@@ -80,7 +74,23 @@ const CustomizedRectangle = (props) => {
   });
 };
 
-function TasksChart() {
+function TasksChart({ summary }: { summary: Summary }) {
+  const chartData = summary.tasks.map((task) => ({
+    ...task,
+    delay: task.execution.startTime - summary.execution.startTime,
+    duration: task.execution.endTime - task.execution.startTime,
+
+    start: task.execution.startTime - summary.execution.startTime,
+    end: task.execution.endTime - summary.execution.startTime,
+  }));
+
+  const taskNames = summary.tasks.reduce((acc, task) => acc.add(task.task), new Set<string>());
+  const colorByTask = Object.fromEntries(
+    [...taskNames.values()].map((task, index) => {
+      return [task, `var(--chart-${(index % colors) + 1})`];
+    }),
+  );
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <LineChart accessibilityLayer data={chartData} layout="vertical">
@@ -98,9 +108,15 @@ function TasksChart() {
         />
         <CartesianGrid horizontal={false} />
 
-        <Customized component={CustomizedRectangle} />
+        <Customized component={(p) => <CustomizedRectangle {...p} colorByTask={colorByTask} />} />
 
-        <Line dataKey="start" stroke="var(--foreground)" strokeWidth={0} opacity={0.2}>
+        <Line
+          dataKey="start"
+          stroke="var(--foreground)"
+          strokeWidth={0}
+          opacity={0.2}
+          isAnimationActive={false}
+        >
           <LabelList
             dataKey="taskId"
             position="insideLeft"
@@ -160,6 +176,7 @@ function TasksChart() {
 }
 
 export default function SamplePage() {
+  const summary = samples[0].data;
   const facts = [
     {
       title: 'Failed Tasks',
@@ -191,6 +208,7 @@ export default function SamplePage() {
       ),
     },
   ];
+
   return (
     <div>
       <div className="container mx-auto p-4">
@@ -212,7 +230,7 @@ export default function SamplePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <TasksChart />
+            <TasksChart summary={summary} />
           </CardContent>
         </Card>
       </div>
