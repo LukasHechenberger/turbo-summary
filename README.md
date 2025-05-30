@@ -15,3 +15,4 @@ Head over to [turbo-summary-web.vercel.app](https://turbo-summary-web.vercel.app
 - Export as an image
 - REST API
 - GitHub action integration
+- VSCode extension
