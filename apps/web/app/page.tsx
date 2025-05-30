@@ -4,12 +4,10 @@ import { UploadForm } from './page.client';
 
 export default function Page() {
   return (
-    <div className="flex flex-1 items-center justify-center">
-      <div className="flex flex-col items-center justify-center gap-4">
+    <div className="flex flex-1 flex-col items-center justify-center">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4">
         <h1 className="text-2xl font-bold">Turbo Summary</h1>
-        <p className="mb-2">
-          Upload your turborepo <code>summary.json</code> and view the results.
-        </p>
+        <p className="mb-2">Pick a Turborepo summary file and view the results.</p>
 
         <UploadForm />
 
@@ -21,6 +19,14 @@ export default function Page() {
           </Button>
         </div>
       </div>
+
+      <p className="bg-muted/20 text-muted-foreground rounded-lg border p-4 text-sm">
+        Also check out the project I created this app for:{' '}
+        <Link href="https://qrcardapp.com" target="_blank">
+          <span className="scale-125 font-bold transition-all hover:text-[#c20e1a]">QRcard</span>
+        </Link>{' '}
+        - your last business card 😉
+      </p>
     </div>
   );
 }

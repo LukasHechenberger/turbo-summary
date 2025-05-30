@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
         <Providers>
-          <div className="flex min-h-screen flex-col">
+          <div className="flex min-h-screen flex-col pb-12">
             <header className="bg-background/50 sticky top-0 z-40 flex items-center justify-between px-4 py-2 backdrop-blur-lg">
               <div className="flex items-center gap-2">
                 <Link href="/">
@@ -49,7 +49,7 @@ export default function RootLayout({
             {children}
           </div>
 
-          <footer className="bg-muted/20 text-muted-foreground mt-12 border-t px-4 pb-12 pt-8 text-center text-sm">
+          <footer className="bg-muted/20 text-muted-foreground border-t px-4 pb-12 pt-8 text-center text-sm">
             &copy; {new Date().getFullYear()}{' '}
             <Button variant="ghost" asChild>
               <Link
