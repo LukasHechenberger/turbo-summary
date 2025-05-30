@@ -1,6 +1,6 @@
 'use client';
 
-import { Bar, BarChart, Cell, XAxis, YAxis } from 'recharts';
+import { Customized, Line, LineChart, Rectangle, XAxis, YAxis } from 'recharts';
 import {
   type ChartConfig,
   ChartContainer,
@@ -10,74 +10,62 @@ import {
 import prettyMilliseconds from 'pretty-ms';
 import summary from './summary.json';
 
-const tasksPerPackage = summary.tasks.reduce(
-  (perPackage, task) => ({
-    ...perPackage,
-    [task.package]: [...(perPackage[task.package] ?? []), task],
-  }),
-  {} as Record<string, (typeof summary)['tasks'][number][]>,
-);
+const chartData = summary.tasks.map((task) => ({
+  ...task,
+  delay: task.execution.startTime - summary.execution.startTime,
+  duration: task.execution.endTime - task.execution.startTime,
 
-const taskNames = summary.tasks.reduce((names, task) => names.add(task.task), new Set<string>());
-
-const chartData = Object.entries(tasksPerPackage).map(([packageName, tasks]) => ({
-  package: packageName,
-  // desktop: 40 * Math.random(),
-  // mobile: 20 * Math.random(),
-  // tasks: tasks.map((task) => ({
-  //   ...task,
-  //   delay: task.execution.startTime - summary.execution.startTime,
-  //   duration: task.execution.endTime - task.execution.startTime,
-  // })),
-
-  ...Object.fromEntries(
-    [...taskNames.values()].map((taskName) => {
-      const task = tasks.find((t) => t.task === taskName);
-
-      if (task) {
-        return [
-          task.task,
-          {
-            ...task,
-            delay: task.execution.startTime - summary.execution.startTime,
-            duration: task.execution.endTime - task.execution.startTime,
-          },
-        ];
-      }
-
-      return [];
-    }),
-  ),
+  start: task.execution.startTime - summary.execution.startTime,
+  end: task.execution.endTime - summary.execution.startTime,
 }));
 
-console.dir({ chartData, names: [...taskNames.values()] });
-
-// const chartData = summary.tasks.map((task) => ({
-//   ...task,
-//   delay: task.execution.startTime - summary.execution.startTime,
-//   duration: task.execution.endTime - task.execution.startTime,
-// }));
-
 const chartConfig = {
-  delay: {
-    label: 'Delay',
+  start: {
+    label: 'Start',
     color: '#2563eb',
   },
-  duration: {
-    label: 'Duration',
+  end: {
+    label: 'End',
     color: '#60a5fa',
   },
 } satisfies ChartConfig;
 
-function MyChart() {
+// using Customized gives you access to all relevant chart props
+const CustomizedRectangle = (props) => {
+  const { formattedGraphicalItems } = props;
+  // get first and second series in chart
+  const firstSeries = formattedGraphicalItems[0];
+  const secondSeries = formattedGraphicalItems[1];
+
+  // render custom content using points from the graph
+  return firstSeries?.props?.points.map((firstSeriesPoint, index) => {
+    const secondSeriesPoint = secondSeries?.props?.points[index];
+    const xDifference = firstSeriesPoint.x - secondSeriesPoint.x;
+
+    return (
+      <Rectangle
+        key={firstSeriesPoint.payload.taskId}
+        height={10}
+        radius={5}
+        width={xDifference}
+        x={secondSeriesPoint.x}
+        y={secondSeriesPoint.y - 5}
+        fill={firstSeriesPoint.payload?.execution.exitCode === 0 ? 'green' : 'red'}
+        fillOpacity={firstSeriesPoint.payload?.cache?.status === 'HIT' ? 0.5 : 1}
+      />
+    );
+  });
+};
+
+function TasksChart() {
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-      <BarChart
+      <LineChart
         accessibilityLayer
         data={chartData}
         layout="vertical"
         margin={{
-          left: 50,
+          left: 180,
         }}
       >
         <XAxis
@@ -87,91 +75,61 @@ function MyChart() {
           tickFormatter={(value) => prettyMilliseconds(value)}
         />
         <YAxis
-          dataKey="package"
+          dataKey="taskId"
           type="category"
           tickLine={false}
           tickMargin={10}
           axisLine={false}
-          // tickFormatter={(value) => value.slice(0, 3)}
+          padding={{ top: 20, bottom: 20 }}
         />
+
+        <Line dataKey="start" stroke={chartConfig.start.color} strokeWidth={0} opacity={0.2} />
+        <Line dataKey="end" stroke={chartConfig.end.color} strokeWidth={0} opacity={0.2} />
+        <Customized component={CustomizedRectangle} />
+
         <ChartTooltip
           cursor={false}
           content={
             <ChartTooltipContent
               labelFormatter={(value) => `Package: ${value}`}
-              formatter={(value, name, item, index) => (
-                <>
-                  <div className="text-muted-foreground flex basis-full items-center text-xs">
-                    {chartConfig[name as keyof typeof chartConfig]?.label || name}
-                    <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
-                      {prettyMilliseconds(value)}
+              formatter={(value, name, item, index) =>
+                index === 0 && (
+                  <>
+                    <div className="text-muted-foreground flex basis-full items-center text-xs">
+                      Delay
+                      <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                        {prettyMilliseconds(
+                          item.payload.execution.startTime - summary.execution.startTime,
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Add this after the last item */}
-                  {/* {index === 1 && (
-                    <>
-                      <div className="text-muted-foreground flex basis-full items-center text-xs">
-                        Cache
-                        <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
-                          {item.payload.cache.status}
-                        </div>
+                    <div className="text-muted-foreground flex basis-full items-center text-xs">
+                      Duration
+                      <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                        {prettyMilliseconds(
+                          item.payload.execution.endTime - item.payload.execution.startTime,
+                        )}
                       </div>
-                      <div className="text-foreground mt-1.5 flex basis-full items-center border-t pt-1.5 text-xs font-medium">
-                        Status
-                        <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
-                          {item.payload.execution.exitCode === 0 ? 'Success' : 'Failed'}
-                        </div>
+                    </div>
+                    <div className="text-muted-foreground flex basis-full items-center text-xs">
+                      Cache
+                      <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                        {item.payload.cache.status}
                       </div>
-                    </>
-                  )} */}
-                </>
-              )}
+                    </div>
+                    <div className="text-foreground mt-1.5 flex basis-full items-center border-t pt-1.5 text-xs font-medium">
+                      Status
+                      <div className="text-foreground ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums">
+                        {item.payload.execution.exitCode === 0 ? 'Success' : 'Failed'}
+                      </div>
+                    </div>
+                  </>
+                )
+              }
             />
           }
         />
-
-        {[...taskNames.values()].map((taskName) => (
-          <>
-            <Bar
-              stackId={taskName}
-              dataKey={`${taskName}.delay`}
-              fill="grey"
-              radius={4}
-              style={{ opacity: 0.1 }}
-            />
-            <Bar
-              stackId={taskName}
-              dataKey={`${taskName}.duration`}
-              fill="var(--chart-1)"
-              radius={4}
-            >
-              {chartData.map((perPackage) =>
-                perPackage[taskName] ? (
-                  <Cell
-                    key={perPackage[taskName].taskId}
-                    fill={perPackage[taskName].execution.exitCode === 0 ? 'green' : 'red'}
-                    opacity={perPackage[taskName].cache.status === 'HIT' ? 0.5 : 1}
-                  />
-                ) : (
-                  <Cell key={`${perPackage.package}.${taskName}`} />
-                ),
-              )}
-            </Bar>
-          </>
-        ))}
-
-        {/* <Bar stackId="a" dataKey="delay" fill="grey" radius={4} style={{ opacity: 0.1 }} />
-        <Bar stackId="a" dataKey="duration" fill="var(--chart-1)" radius={4}>
-          {chartData.map((task) => (
-            <Cell
-              key={task.taskId}
-              fill={task.execution.exitCode === 0 ? 'green' : 'red'}
-              opacity={task.cache.status === 'HIT' ? 0.5 : 1}
-            />
-          ))}
-        </Bar> */}
-      </BarChart>
+      </LineChart>
     </ChartContainer>
   );
 }
@@ -179,10 +137,8 @@ function MyChart() {
 export default function SamplePage() {
   return (
     <div>
-      <h1>Sample Report</h1>
-
       <div className="container mx-auto p-4">
-        <MyChart />
+        <TasksChart />
       </div>
     </div>
   );
