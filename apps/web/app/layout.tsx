@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import '@repo/ui/globals.css';
 import { Providers } from '@/components/providers';
 import Link from 'next/link';
+import { Button } from '@repo/ui/components/button';
 
 const fontSans = Geist({
   subsets: ['latin'],
@@ -35,7 +36,12 @@ export default function RootLayout({
           </div>
 
           <footer className="bg-muted/20 text-muted-foreground mt-12 border-t px-4 pb-12 pt-8 text-center text-sm">
-            &copy; {new Date().getFullYear()} Lukas Hechenberger
+            &copy; {new Date().getFullYear()}{' '}
+            <Button variant="ghost" asChild>
+              <Link rel="noopener noreferrer" href="https://github.com/LukasHechenberger">
+                Lukas Hechenberger
+              </Link>
+            </Button>
           </footer>
         </Providers>
       </body>
