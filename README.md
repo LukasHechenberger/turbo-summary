@@ -1,31 +1,17 @@
-# shadcn/ui monorepo template
+# turbo-summary
 
-This template is for creating a monorepo with shadcn/ui.
+Visualize a [Turborepo](https://turborepo.com) summary file created with [`turbo run [...task] --summarize`](https://turborepo.com/docs/crafting-your-repository/caching#using-run-summaries)
+
+> [!NOTE]
+> This project is in a pretty early stage. It works fine so far, but many features I want to implement are still missing. [Create an Issue](https://github.com/LukasHechenberger/turbo-summary/issues/new) if you have any thoughts 😉.
 
 ## Usage
 
-```bash
-pnpm dlx shadcn@latest init
-```
+Head over to [turbo-summary-web.vercel.app](https://turbo-summary-web.vercel.app) and upload your summary file.
 
-## Adding components
+## Planned features
 
-To add components to your app, run the following command at the root of your `web` app:
-
-```bash
-pnpm dlx shadcn@latest add button -c apps/web
-```
-
-This will place the ui components in the `packages/ui/src/components` directory.
-
-## Tailwind
-
-Your `tailwind.config.ts` and `globals.css` are already set up to use the components from the `ui` package.
-
-## Using components
-
-To use the components in your app, import them from the `ui` package.
-
-```tsx
-import { Button } from '@repo/ui/components/button';
-```
+- Diff between two runs (similar to [what vercel does](https://vercel.com/changelog/turborepo-run-summary-is-now-available))
+- Export as an image
+- REST API
+- GitHub action integration
