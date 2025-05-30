@@ -1,6 +1,15 @@
 'use client';
 
-import { Customized, Line, LineChart, Rectangle, XAxis, YAxis } from 'recharts';
+import {
+  CartesianGrid,
+  Customized,
+  LabelList,
+  Line,
+  LineChart,
+  Rectangle,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import {
   type ChartConfig,
   ChartContainer,
@@ -9,6 +18,20 @@ import {
 } from '@repo/ui/components/chart';
 import prettyMilliseconds from 'pretty-ms';
 import summary from './summary.json';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@repo/ui/components/card';
+
+// MARK: Settings
+
+/** How many --chart-# colors are available */
+const colors = 5;
+/** Height of the task's rectangle */
+const barHeight = 20;
 
 const chartData = summary.tasks.map((task) => ({
   ...task,
@@ -19,16 +42,14 @@ const chartData = summary.tasks.map((task) => ({
   end: task.execution.endTime - summary.execution.startTime,
 }));
 
-const chartConfig = {
-  start: {
-    label: 'Start',
-    color: '#2563eb',
-  },
-  end: {
-    label: 'End',
-    color: '#60a5fa',
-  },
-} satisfies ChartConfig;
+const taskNames = summary.tasks.reduce((acc, task) => acc.add(task.task), new Set<string>());
+const colorByTask = Object.fromEntries(
+  [...taskNames.values()].map((task, index) => {
+    return [task, `var(--chart-${(index % colors) + 1})`];
+  }),
+);
+
+const chartConfig = {} satisfies ChartConfig;
 
 // using Customized gives you access to all relevant chart props
 const CustomizedRectangle = (props) => {
@@ -45,12 +66,14 @@ const CustomizedRectangle = (props) => {
     return (
       <Rectangle
         key={firstSeriesPoint.payload.taskId}
-        height={10}
-        radius={5}
+        height={barHeight}
+        radius={barHeight / 2}
         width={xDifference}
         x={secondSeriesPoint.x}
-        y={secondSeriesPoint.y - 5}
-        fill={firstSeriesPoint.payload?.execution.exitCode === 0 ? 'green' : 'red'}
+        y={secondSeriesPoint.y - barHeight / 2}
+        fill={colorByTask[firstSeriesPoint.payload.task]}
+        stroke="var(--destructive)"
+        strokeWidth={firstSeriesPoint.payload?.execution.exitCode === 0 ? 0 : 4}
         fillOpacity={firstSeriesPoint.payload?.cache?.status === 'HIT' ? 0.5 : 1}
       />
     );
@@ -60,14 +83,7 @@ const CustomizedRectangle = (props) => {
 function TasksChart() {
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
-      <LineChart
-        accessibilityLayer
-        data={chartData}
-        layout="vertical"
-        margin={{
-          left: 180,
-        }}
-      >
+      <LineChart accessibilityLayer data={chartData} layout="vertical">
         <XAxis
           type="number"
           min={0}
@@ -77,21 +93,30 @@ function TasksChart() {
         <YAxis
           dataKey="taskId"
           type="category"
-          tickLine={false}
-          tickMargin={10}
-          axisLine={false}
-          padding={{ top: 20, bottom: 20 }}
+          hide
+          padding={{ top: barHeight, bottom: barHeight }}
         />
+        <CartesianGrid horizontal={false} />
 
-        <Line dataKey="start" stroke={chartConfig.start.color} strokeWidth={0} opacity={0.2} />
-        <Line dataKey="end" stroke={chartConfig.end.color} strokeWidth={0} opacity={0.2} />
         <Customized component={CustomizedRectangle} />
+
+        <Line dataKey="start" stroke="var(--foreground)" strokeWidth={0} opacity={0.2}>
+          <LabelList
+            dataKey="taskId"
+            position="insideLeft"
+            offset={8}
+            fill="var(--foreground)"
+            className="text-red-500"
+            fontSize={12}
+          />
+        </Line>
+        <Line dataKey="end" stroke="var(--foreground)" strokeWidth={0} opacity={0.2} />
 
         <ChartTooltip
           cursor={false}
           content={
             <ChartTooltipContent
-              labelFormatter={(value) => `Package: ${value}`}
+              labelFormatter={(value) => `Task: ${value}`}
               formatter={(value, name, item, index) =>
                 index === 0 && (
                   <>
@@ -135,10 +160,42 @@ function TasksChart() {
 }
 
 export default function SamplePage() {
+  const facts = [
+    {
+      title: 'Cached Tasks',
+      value: `${summary.tasks.filter((task) => task.cache.status === 'HIT').length}/${summary.tasks.length}`,
+    },
+    {
+      title: 'Time Saved',
+      value: prettyMilliseconds(
+        summary.tasks.reduce((saved, task) => saved + task.cache.timeSaved, 0),
+      ),
+    },
+  ];
   return (
     <div>
       <div className="container mx-auto p-4">
-        <TasksChart />
+        <Card>
+          <CardHeader>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <CardTitle>Run Summary</CardTitle>
+                <CardDescription>This chart shows the execution time of tasks.</CardDescription>
+              </div>
+
+              {/* Facts */}
+              {facts.map((fact) => (
+                <div key={fact.title} className="flex flex-col items-end justify-center gap-1">
+                  <span className="text-muted-foreground text-xs">{fact.title}</span>
+                  <span className="text-lg font-bold leading-none sm:text-3xl">{fact.value}</span>
+                </div>
+              ))}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <TasksChart />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
